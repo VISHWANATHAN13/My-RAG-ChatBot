@@ -304,8 +304,6 @@ the sources output must target a separate Gradio component.
 -   Improved source presentation, such as document names and relevant
     excerpts.
 
-Only mark an enhancement as completed after it is implemented and
-tested.
 
 ## Security
 
@@ -315,7 +313,3 @@ tested.
     them.
 -   Confirm you have permission to use and share the source material.
 
-## License
-
-Add the license applicable to your project here. Do not claim a license
-unless you have selected and included one.
