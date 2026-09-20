@@ -1,0 +1,71 @@
+{
+  "college": "Greenfield Institute of Technology",
+  "faqs": [
+    {
+      "id": "FAQ001",
+      "category": "attendance",
+      "question": "What is the minimum attendance required for semester examinations?",
+      "answer": "Students must maintain at least 75% attendance to be eligible for semester examinations.",
+      "keywords": [
+        "attendance",
+        "exams",
+        "eligibility"
+      ]
+    },
+    {
+      "id": "FAQ002",
+      "category": "leave",
+      "question": "How do I apply for leave?",
+      "answer": "Submit a leave request to your class advisor. Medical leave requests should include supporting medical documents.",
+      "keywords": [
+        "leave",
+        "advisor",
+        "medical"
+      ]
+    },
+    {
+      "id": "FAQ003",
+      "category": "library",
+      "question": "How many books can I borrow?",
+      "answer": "Students may borrow up to three books at a time for a period of 14 days.",
+      "keywords": [
+        "library",
+        "books",
+        "borrowing"
+      ]
+    },
+    {
+      "id": "FAQ004",
+      "category": "examinations",
+      "question": "What should I bring to the examination hall?",
+      "answer": "Students must carry their college identity card and examination hall ticket.",
+      "keywords": [
+        "exam",
+        "identity card",
+        "hall ticket"
+      ]
+    },
+    {
+      "id": "FAQ005",
+      "category": "placements",
+      "question": "Does the college provide placement training?",
+      "answer": "The college provides resume workshops, aptitude practice sessions, mock interviews, and technical training for eligible students.",
+      "keywords": [
+        "placements",
+        "training",
+        "interviews"
+      ]
+    },
+    {
+      "id": "FAQ006",
+      "category": "transport",
+      "question": "How can I apply for college transport?",
+      "answer": "Students can submit a transport application to the campus transport office. Route availability and fees must be confirmed with the office.",
+      "keywords": [
+        "transport",
+        "bus",
+        "routes"
+      ]
+    }
+  ]
+}
