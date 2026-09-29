@@ -43,6 +43,25 @@ def load_vectore_store():
     )
     return vectore_store
 
+# Similarity search score
+def chroma_retrive(vector_store, query, k=5):
+    results = vector_store.similarity_search_with_score(
+        query,
+        k=k # Top K
+    )
+    formatted_results = []
+
+    for doc, score in results:
+        formatted_results.append({
+            "id": doc.metadata.get("id"),
+            "content": doc.page_content,
+            "metadata": doc.metadata,
+            "score": score
+        })
+
+    return formatted_results
+
+
 
 # Driver
 # --------------------------------------------------------------------------------------
@@ -60,20 +79,16 @@ if __name__ == "__main__":
         print("vector database created and chunks are embedded")
 
     query = "What attendance is required for semester exams?"
-
-    results = vectore_store.similarity_search_with_score(
-        query,
-        k=3 # Top K
-    )
+    results = chroma_retrive(vectore_store, query, k=3)
 
     print("=" * 80)
     print(f"Query: {query}")
 
-    for i,(doc,score) in enumerate(results,start=1):
+    for i, result in enumerate(results, start=1):
         print(f"Index: {i}")
-        print(f"Metadata: {doc.metadata}")
-        print(f"Score: {score}")
-        print(f"Content: {doc.page_content}")
+        print(f"Metadata: {result['metadata']}")
+        print(f"Score: {result['score']}")
+        print(f"Content: {result['content']}")
     print("=" * 80)
 
 
