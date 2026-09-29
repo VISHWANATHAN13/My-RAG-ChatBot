@@ -19,7 +19,7 @@ def chat(question, history):
     source_text = "### Sources\n\n"
 
     for i, doc in enumerate(documents, start=1):
-        source = doc.metadata.get(
+        source = doc["metadata"].get(
             "source",
             "Unknown source"
         )
