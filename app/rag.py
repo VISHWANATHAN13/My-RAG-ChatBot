@@ -3,8 +3,10 @@ import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from collections import defaultdict
 
 from vectorstore import load_vectore_store
+from bm25_retrival import format_docs, bm25_retrive
 
 load_dotenv()
 
@@ -13,12 +15,86 @@ api = os.getenv("OPENAI_API_KEY")
 # load vectorstore
 vector_store = load_vectore_store()
 
-# load retriver
-retriver = vector_store.as_retriever(
-    search_kwargs={
-        "k":3
-    }
-)
+# BM25 index is built from the same chunks stored in Chroma, so both
+# retrievers see exactly the same corpus
+stored_data = vector_store.get()
+bm25, bm25_documents = format_docs(stored_data)
+
+# retriver
+# -------------------------------------------------------------------
+# Fusion key: the stored chunks carry no chunk_id, and Chroma's
+# similarity_search does not return its internal ids, so the chunk text
+# is the only identifier shared by both retrievers.
+def doc_key(doc):
+    return doc["content"]
+
+# semantic retrival
+def semantic_retrive(query, k=3):
+    results = vector_store.similarity_search(
+        query,
+        k=k
+    )
+    # return retriver.invoke(query)
+    formatted_results = []
+    for doc in results:
+        formatted_results.append({
+            "content": doc.page_content,
+            "metadata": doc.metadata
+        })
+    return formatted_results
+
+
+# Bm25 retrival is imported from bm25_retrival.py
+
+# -------------------------------------------------------------------
+
+# RRF scoring
+# -------------------------------------------------------------------
+# RRF Results
+def reciprocal_rank_fusion(result_lists,k=60):
+    """
+    result_lists:
+    [
+        dense_results,
+        bm25_results
+    ]
+    """
+    fused_scores = defaultdict(float)
+    docs = {}
+
+    for result_list in result_lists:
+        for rank, doc in enumerate(result_list):
+            doc_id = doc_key(doc)
+            docs[doc_id] = doc
+            fused_scores[doc_id] += 1 / (k + rank + 1)
+
+    reranked = sorted(
+        fused_scores.items(),
+        key = lambda x : x[1],
+        reverse= True
+    )
+
+    return [
+        {**docs[doc_id], "score": score}
+        for doc_id, score in reranked
+        ]
+# -------------------------------------------------------------------
+
+# Driver method to call and merge both scores
+# ------------------------------------------------------------------
+def hybrid_search(query, bm25, stored_data, top_k = 5):
+
+    dense_results = semantic_retrive(query, k=3)
+    bm25_results = bm25_retrive(query, bm25, stored_data, k=20)
+
+    fused_results = reciprocal_rank_fusion([
+        dense_results,
+        bm25_results
+    ])
+
+    return fused_results[:top_k]
+# ------------------------------------------------------------------
+
 
 # define LLM
 
@@ -58,11 +134,11 @@ prompt = ChatPromptTemplate.from_template(
 
 def ask_question(question : str) -> str:
 
-    documents = retriver.invoke(question)
+    documents = hybrid_search(question, bm25, stored_data)
 
     # combining all retrived content into a single string
     context = "\n\n".join(
-        doc.page_content
+        doc["content"]
         for doc in documents
     )
 
@@ -85,8 +161,17 @@ if __name__ == "__main__":
     question = "What attendance is required for semester exams?"
     response,documents = ask_question(question)
 
-    for _,doc in enumerate(documents, start=1):
-        print(f"Content: {doc.page_content}")
-        print(f"File: {doc.metadata.get("source")}")
-        print(f"File Type: {doc.metadata.get("file_type")}")
+    print(f"Question: {question}")
+    print(f"Answer: {response}")
+
+    print("\n" + "=" * 80)
+    print("Retrieved context (hybrid / RRF)")
+    print("=" * 80)
+
+    for rank,doc in enumerate(documents, start=1):
+        print(f"\nRank: {rank}")
+        print(f"RRF Score: {doc['score']}")
+        print(f"File: {doc['metadata'].get("source")}")
+        print(f"File Type: {doc['metadata'].get("file_type")}")
+        print(f"Content: {doc['content']}")
 
